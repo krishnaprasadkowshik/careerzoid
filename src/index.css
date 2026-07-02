@@ -1,0 +1,342 @@
+@import "tailwindcss";
+* {
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background: #05000d;
+}
+
+html,
+#root,
+.cz-landing,
+.auth-screen {
+  overflow-x: hidden;
+}
+
+.cz-landing,
+.auth-screen {
+  background:
+    radial-gradient(circle at 86% 16%, rgba(159, 30, 255, 0.52), transparent 34%),
+    radial-gradient(circle at 74% 78%, rgba(92, 0, 170, 0.55), transparent 42%),
+    radial-gradient(circle at 16% 18%, rgba(59, 130, 246, 0.18), transparent 28%),
+    linear-gradient(135deg, #030006 0%, #10001f 45%, #3a006e 100%);
+}
+
+.cz-nav {
+  background: rgba(5, 0, 14, 0.72);
+}
+
+.cz-logo {
+  font-size: clamp(2.1rem, 3vw, 3rem);
+  line-height: 1;
+}
+
+.cz-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(232, 121, 249, 0.18);
+  background: rgba(168, 85, 247, 0.18);
+  color: #f0abfc;
+  font-weight: 700;
+}
+
+.cz-hero-title {
+  max-width: 780px;
+  color: #ffffff;
+  font-size: clamp(4rem, 7vw, 6.7rem);
+  line-height: 1.12;
+  letter-spacing: 0;
+}
+
+.cz-hero-copy {
+  max-width: 680px;
+  color: #f1e9fb;
+  font-size: clamp(1.1rem, 1.4vw, 1.42rem);
+  line-height: 1.45;
+}
+
+.cz-button-primary,
+.primary-action {
+  color: #ffffff;
+  background: linear-gradient(135deg, #9d17ff, #b217ff);
+  box-shadow: 0 18px 44px rgba(162, 28, 255, 0.36);
+  font-weight: 800;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.cz-button-secondary,
+.secondary-action {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  font-weight: 800;
+  transition:
+    transform 180ms ease,
+    background 180ms ease;
+}
+
+.cz-button-primary:hover,
+.cz-button-secondary:hover,
+.primary-action:hover,
+.secondary-action:hover {
+  transform: translateY(-2px);
+}
+
+.cz-hero-image {
+  display: block;
+  background: #ffffff;
+  border-radius: 30px;
+  box-shadow: 0 36px 110px rgba(0, 0, 0, 0.34);
+}
+
+.cz-illustration-panel {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.92fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.26);
+  padding: 22px;
+}
+
+.cz-illustration-panel img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 24px;
+  background: #ffffff;
+  object-fit: cover;
+}
+
+.cz-illustration-panel h2 {
+  margin-top: 18px;
+  color: #ffffff;
+  font-size: clamp(1.7rem, 2.5vw, 2.6rem);
+  line-height: 1.08;
+  font-weight: 900;
+}
+
+.cz-illustration-panel p {
+  margin-top: 16px;
+  color: #d8cceb;
+  line-height: 1.65;
+}
+
+.auth-screen {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px;
+  color: #ffffff;
+}
+
+.auth-shell {
+  display: grid;
+  width: min(1120px, 100%);
+  grid-template-columns: 0.95fr minmax(360px, 0.82fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.auth-copy,
+.auth-card-pro {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 30px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.035));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(24px);
+}
+
+.auth-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 620px;
+  padding: 34px;
+}
+
+.auth-brand {
+  display: grid;
+  color: inherit;
+  text-decoration: none;
+}
+
+.auth-brand span {
+  width: max-content;
+  background: linear-gradient(90deg, #c084fc, #7c3aed 45%, #60a5fa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 900;
+}
+
+.auth-brand small,
+.auth-muted,
+.auth-visual-card p,
+.auth-switch {
+  color: #d8cceb;
+}
+
+.auth-visual-card h1 {
+  max-width: 620px;
+  margin-top: 22px;
+  font-size: clamp(2.8rem, 5vw, 5rem);
+  line-height: 1.02;
+  font-weight: 900;
+}
+
+.auth-card-pro {
+  padding: 34px;
+}
+
+.auth-card-pro h2 {
+  margin-top: 18px;
+  font-size: clamp(2.4rem, 4vw, 3.7rem);
+  font-weight: 900;
+}
+
+.auth-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 26px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 8px;
+  color: #d8cceb;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.auth-form input {
+  min-height: 56px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  outline: none;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 0 16px;
+}
+
+.auth-form input:focus {
+  border-color: rgba(192, 132, 252, 0.82);
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.18);
+}
+
+.primary-action,
+.secondary-action {
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.primary-action:disabled,
+.secondary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  transform: none;
+}
+
+.auth-divider {
+  margin: 22px 0;
+  color: #a897bb;
+  text-align: center;
+}
+
+.auth-switch {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: #e879f9;
+  font-weight: 900;
+}
+
+.auth-alert {
+  border-radius: 16px;
+  margin-top: 18px;
+  padding: 13px 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.auth-alert.success {
+  border: 1px solid rgba(134, 239, 172, 0.36);
+  color: #bbf7d0;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.auth-alert.error {
+  border: 1px solid rgba(252, 165, 165, 0.36);
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+@media (max-width: 980px) {
+  .auth-shell,
+  .cz-illustration-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-copy {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 640px) {
+  .cz-nav .max-w-7xl {
+    gap: 14px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .cz-nav .flex.gap-3 {
+    gap: 8px;
+  }
+
+  .cz-nav a {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .cz-hero-title {
+    font-size: clamp(3.4rem, 15vw, 4.7rem);
+  }
+
+  .auth-screen {
+    padding: 18px;
+  }
+
+  .auth-copy,
+  .auth-card-pro {
+    border-radius: 22px;
+    padding: 22px;
+  }
+}
+/* Hide sidebar scrollbar but keep scrolling working */
+.careerzoid-sidebar-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.careerzoid-sidebar-scroll::-webkit-scrollbar {
+  display: none;
+}
