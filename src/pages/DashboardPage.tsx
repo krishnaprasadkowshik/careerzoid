@@ -3,8 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase/auth";
 import logo from "../assets/careerzoid-logo.png";
 import { db } from "../firebase/firestore";
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+} from "firebase/firestore";
 import { signOut } from "firebase/auth";
+
 import {
   Menu,
   X,
@@ -36,13 +43,22 @@ export default function DashboardPage() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   const [userData, setUserData] = useState<any>(null);
   const [savedCareers, setSavedCareers] = useState<any[]>([]);
-  const [skillProgress, setSkillProgress] = useState<any>({});
+  const [skillProgress, setSkillProgress] = useState<Record<string, boolean>>(
+    {}
+  );
   const [loading, setLoading] = useState(true);
 
+  // --------------------------------------------------
+  // SAFE ARRAY HELPER
+  // --------------------------------------------------
+
   const safeArray = (value: any): any[] => {
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(value)) {
+      return value;
+    }
 
     if (typeof value === "string") {
       return value
@@ -51,10 +67,16 @@ export default function DashboardPage() {
         .filter(Boolean);
     }
 
-    if (value && typeof value === "object") return Object.values(value);
+    if (value && typeof value === "object") {
+      return Object.values(value);
+    }
 
     return [];
   };
+
+  // --------------------------------------------------
+  // LOAD DASHBOARD
+  // --------------------------------------------------
 
   useEffect(() => {
     loadDashboardData();
@@ -69,29 +91,34 @@ export default function DashboardPage() {
     }
 
     try {
+      // USER DATA
       const userSnap = await getDoc(doc(db, "users", user.uid));
 
       if (userSnap.exists()) {
         setUserData(userSnap.data());
       }
 
+      // SAVED CAREERS
       const savedCareersSnap = await getDocs(
         collection(db, "users", user.uid, "savedCareers")
       );
 
-      setSavedCareers(
-        savedCareersSnap.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        }))
-      );
+      const careers = savedCareersSnap.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
 
+      setSavedCareers(careers);
+
+      // SKILL PROGRESS
       const progressSnap = await getDoc(
         doc(db, "users", user.uid, "progress", "skills")
       );
 
       if (progressSnap.exists()) {
-        setSkillProgress(progressSnap.data());
+        setSkillProgress(
+          progressSnap.data() as Record<string, boolean>
+        );
       }
     } catch (error) {
       console.error("Dashboard loading error:", error);
@@ -99,6 +126,10 @@ export default function DashboardPage() {
       setLoading(false);
     }
   };
+
+  // --------------------------------------------------
+  // TOGGLE SKILL
+  // --------------------------------------------------
 
   const toggleSkillProgress = async (skill: string) => {
     const user = auth.currentUser;
@@ -112,41 +143,83 @@ export default function DashboardPage() {
 
     setSkillProgress(updatedProgress);
 
-    await setDoc(
-      doc(db, "users", user.uid, "progress", "skills"),
-      updatedProgress
-    );
+    try {
+      await setDoc(
+        doc(db, "users", user.uid, "progress", "skills"),
+        updatedProgress
+      );
+    } catch (error) {
+      console.error("Failed to save skill progress:", error);
+
+      // Rollback if Firestore fails
+      setSkillProgress(skillProgress);
+    }
   };
+
+  // --------------------------------------------------
+  // LOGOUT
+  // --------------------------------------------------
 
   const logout = async () => {
-    await signOut(auth);
-    window.location.href = "/";
+    try {
+      await signOut(auth);
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
-  const allSkills = useMemo(() => {
-    const skills = savedCareers.flatMap((career) => safeArray(career.skills));
+  // --------------------------------------------------
+  // ALL SKILLS
+  // --------------------------------------------------
 
-    return Array.from(new Set(skills.map((skill) => String(skill))));
+  const allSkills = useMemo(() => {
+    const skills = savedCareers.flatMap((career) =>
+      safeArray(career.skills)
+    );
+
+    return Array.from(
+      new Set(skills.map((skill) => String(skill).trim()).filter(Boolean))
+    );
   }, [savedCareers]);
 
-  const completedSkills = allSkills.filter((skill) => skillProgress[skill]);
+  const completedSkills = allSkills.filter(
+    (skill) => skillProgress[skill]
+  );
 
   const skillProgressPercent =
     allSkills.length === 0
       ? 0
-      : Math.round((completedSkills.length / allSkills.length) * 100);
+      : Math.round(
+          (completedSkills.length / allSkills.length) * 100
+        );
+
+  // --------------------------------------------------
+  // MEMBERSHIP
+  // --------------------------------------------------
 
   const membership =
-    userData?.membership || userData?.subscription || userData?.plan || "FREE";
+    userData?.membership ||
+    userData?.subscription ||
+    userData?.plan ||
+    "FREE";
 
   const isProUser =
     String(membership).toLowerCase().includes("pro") ||
     String(membership).toLowerCase().includes("launch") ||
     userData?.launchBatchActive === true;
 
+  // --------------------------------------------------
+  // ACHIEVERS ELIGIBILITY
+  // --------------------------------------------------
+
   const isAchieversEligible =
     userData?.achieversEligible === true ||
     userData?.eligibleForAchieversClub === true;
+
+  // --------------------------------------------------
+  // LAUNCH PROGRESS
+  // --------------------------------------------------
 
   const progressSteps = [
     {
@@ -183,14 +256,30 @@ export default function DashboardPage() {
     },
   ];
 
-  const completedSteps = progressSteps.filter((step) => step.done).length;
+  const completedSteps = progressSteps.filter(
+    (step) => step.done
+  ).length;
 
-  const overallProgress = Math.round(
-    (completedSteps / progressSteps.length) * 100
-  );
+  const overallProgress =
+    progressSteps.length === 0
+      ? 0
+      : Math.round(
+          (completedSteps / progressSteps.length) * 100
+        );
 
-  const referralCode = userData?.referralCode || "Not generated yet";
-  const referralLink = userData?.referralLink || "Not generated yet";
+  // --------------------------------------------------
+  // REFERRALS
+  // --------------------------------------------------
+
+  const referralCode =
+    userData?.referralCode || "Not generated yet";
+
+  const referralLink =
+    userData?.referralLink || "Not generated yet";
+
+  // --------------------------------------------------
+  // SIDEBAR MENU
+  // --------------------------------------------------
 
   const menuItems = [
     {
@@ -208,6 +297,7 @@ export default function DashboardPage() {
     {
       label: "Career Guidance",
       icon: Compass,
+      path: "/career-guidance",
       pro: true,
     },
     {
@@ -248,6 +338,7 @@ export default function DashboardPage() {
     {
       label: "Interview Readiness",
       icon: Mic,
+      path: "/interview-readiness",
       pro: true,
     },
     {
@@ -274,11 +365,18 @@ export default function DashboardPage() {
     {
       label: "Profile",
       icon: User,
+      path: "/profile",
     },
   ];
 
+  // --------------------------------------------------
+  // SIDEBAR
+  // --------------------------------------------------
+
   const SidebarContent = () => (
     <>
+      {/* LOGO HEADER */}
+
       <div className="flex items-center justify-between">
         {!sidebarCollapsed && (
           <div className="w-full">
@@ -286,7 +384,7 @@ export default function DashboardPage() {
               <img
                 src={logo}
                 alt="CareerZoid"
-                className="h-28 w-auto mb-3"
+                className="h-28 w-auto mb-3 object-contain"
               />
 
               <h1 className="text-2xl font-black bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
@@ -300,12 +398,23 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* DESKTOP COLLAPSE */}
+
         <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onClick={() =>
+            setSidebarCollapsed(!sidebarCollapsed)
+          }
           className="hidden lg:flex p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition"
+          title={
+            sidebarCollapsed
+              ? "Expand sidebar"
+              : "Collapse sidebar"
+          }
         >
           <Menu size={20} />
         </button>
+
+        {/* MOBILE CLOSE */}
 
         <button
           onClick={() => setSidebarOpen(false)}
@@ -315,6 +424,8 @@ export default function DashboardPage() {
         </button>
       </div>
 
+      {/* MENU */}
+
       <div className="mt-8 space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -323,13 +434,23 @@ export default function DashboardPage() {
             <button
               key={item.label}
               onClick={() => {
-                if (item.path) navigate(item.path);
+                if (item.path) {
+                  navigate(item.path);
+                }
+
                 setSidebarOpen(false);
               }}
+              title={
+                sidebarCollapsed ? item.label : undefined
+              }
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all duration-300 ${
                 item.active
                   ? "bg-purple-600 border-purple-400 shadow-lg shadow-purple-500/20"
                   : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-purple-500/50"
+              } ${
+                sidebarCollapsed
+                  ? "justify-center px-2"
+                  : ""
               }`}
             >
               <Icon size={20} />
@@ -352,6 +473,8 @@ export default function DashboardPage() {
         })}
       </div>
 
+      {/* PRO CARD */}
+
       {!sidebarCollapsed && (
         <div className="mt-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-3xl p-5">
           <h3 className="text-black font-black text-lg">
@@ -359,8 +482,8 @@ export default function DashboardPage() {
           </h3>
 
           <p className="text-black/80 text-sm mt-2">
-            Join Launch Batch to unlock analyzers, roadmap generator and
-            interview readiness.
+            Join Launch Batch to unlock analyzers, roadmap
+            generator and interview readiness.
           </p>
 
           <button
@@ -372,29 +495,57 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* LOGOUT */}
+
       <button
         onClick={logout}
-        className="mt-8 w-full flex items-center justify-center gap-3 bg-red-600/90 hover:bg-red-600 p-4 rounded-2xl font-bold transition"
+        title={sidebarCollapsed ? "Logout" : undefined}
+        className={`mt-8 w-full flex items-center justify-center gap-3 bg-red-600/90 hover:bg-red-600 p-4 rounded-2xl font-bold transition ${
+          sidebarCollapsed ? "px-2" : ""
+        }`}
       >
         <LogOut size={20} />
+
         {!sidebarCollapsed && "Logout"}
       </button>
     </>
   );
 
+  // --------------------------------------------------
+  // LOADING
+  // --------------------------------------------------
+
   if (loading) {
     return (
       <div className="h-screen bg-slate-950 text-white flex items-center justify-center">
-        Loading Dashboard...
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto" />
+
+          <p className="mt-5 text-gray-400">
+            Loading Dashboard...
+          </p>
+        </div>
       </div>
     );
   }
-    return (
+
+  // --------------------------------------------------
+  // DASHBOARD
+  // --------------------------------------------------
+
+  return (
     <div className="h-screen bg-slate-950 text-white flex relative overflow-hidden">
+      {/* BACKGROUND */}
+
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute -top-40 -left-40 w-[800px] h-[800px] bg-purple-700/25 blur-[150px] rounded-full" />
+
         <div className="absolute top-20 right-0 w-[800px] h-[800px] bg-blue-700/20 blur-[150px] rounded-full" />
+
+        <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] bg-cyan-700/10 blur-[150px] rounded-full" />
       </div>
+
+      {/* DESKTOP SIDEBAR */}
 
       <aside
         className={`relative z-20 hidden lg:block h-screen overflow-y-auto border-r border-white/10 bg-white/[0.03] backdrop-blur-2xl p-5 transition-all duration-500 ease-in-out ${
@@ -403,6 +554,8 @@ export default function DashboardPage() {
       >
         <SidebarContent />
       </aside>
+
+      {/* MOBILE SIDEBAR */}
 
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -417,15 +570,23 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* MAIN */}
+
       <main className="relative z-10 flex-1 h-screen overflow-y-auto scroll-smooth">
+        {/* TOP BAR */}
+
         <div className="sticky top-0 z-30 bg-slate-950/60 backdrop-blur-2xl border-b border-white/10 px-5 lg:px-10 py-4">
           <div className="flex items-center justify-between gap-4">
+            {/* MOBILE MENU */}
+
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-3 bg-white/5 border border-white/10 rounded-2xl"
             >
               <Menu size={22} />
             </button>
+
+            {/* WELCOME */}
 
             <div>
               <p className="text-gray-400 text-sm">
@@ -440,8 +601,13 @@ export default function DashboardPage() {
               </h2>
             </div>
 
+            {/* MEMBERSHIP */}
+
             <div className="hidden md:flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-              <Sparkles size={18} className="text-purple-300" />
+              <Sparkles
+                size={18}
+                className="text-purple-300"
+              />
 
               <span className="text-sm text-gray-300">
                 Membership:{" "}
@@ -453,30 +619,40 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* PAGE CONTENT */}
+
         <div className="p-5 lg:p-10">
+          {/* HERO */}
+
           <section className="rounded-[2rem] border border-white/10 bg-white/[0.04] backdrop-blur-2xl overflow-hidden">
             <div className="grid lg:grid-cols-2 gap-8 p-8 lg:p-10">
               <div>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-200 text-sm">
                   <Sparkles size={16} />
+
                   AI Career Command Center
                 </div>
 
                 <h1 className="text-4xl md:text-6xl font-black mt-6 leading-tight">
                   Build Your Future With
                   <br />
-                  AI-Powered Career Intelligence
+                  <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                    AI-Powered Career Intelligence
+                  </span>
                 </h1>
 
                 <p className="mt-5 text-gray-400 text-lg max-w-2xl">
-                  Track careers, skills, Launch Batch progress, Achievers status
-                  and referral growth from one premium dashboard.
+                  Track careers, skills, Launch Batch progress,
+                  Achievers status and referral growth from one
+                  premium dashboard.
                 </p>
 
                 <div className="flex flex-wrap gap-4 mt-8">
                   <button
-                    onClick={() => navigate("/career-explorer")}
-                    className="px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 font-bold"
+                    onClick={() =>
+                      navigate("/career-explorer")
+                    }
+                    className="px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-blue-600 font-bold hover:scale-105 transition"
                   >
                     Explore Careers
                   </button>
@@ -489,7 +665,9 @@ export default function DashboardPage() {
                   </button>
 
                   <button
-                    onClick={() => navigate("/launch-batch-dashboard")}
+                    onClick={() =>
+                      navigate("/launch-batch-dashboard")
+                    }
                     className="px-6 py-4 rounded-2xl bg-white/5 border border-white/10 font-bold hover:bg-white/10 transition"
                   >
                     Launch Batch Dashboard
@@ -500,6 +678,8 @@ export default function DashboardPage() {
               <AIHeroIllustration />
             </div>
           </section>
+
+          {/* STATS */}
 
           <section className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 mt-8">
             <VisualStatCard
@@ -527,15 +707,28 @@ export default function DashboardPage() {
             />
           </section>
 
+          {/* PROGRESS */}
+
           <section className="grid xl:grid-cols-3 gap-8 mt-8">
+            {/* SKILLS */}
+
             <div className="xl:col-span-2 bg-white/[0.04] border border-white/10 backdrop-blur-2xl rounded-3xl p-6 lg:p-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl font-black">
-                  Skill Progress Tracker
-                </h2>
+                <div>
+                  <h2 className="text-3xl font-black">
+                    Skill Progress Tracker
+                  </h2>
+
+                  <p className="text-gray-400 mt-1">
+                    Track the skills required for your saved
+                    careers.
+                  </p>
+                </div>
 
                 <button
-                  onClick={() => navigate("/career-explorer")}
+                  onClick={() =>
+                    navigate("/career-explorer")
+                  }
                   className="text-sm px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500"
                 >
                   Add Career
@@ -544,25 +737,41 @@ export default function DashboardPage() {
 
               {allSkills.length === 0 ? (
                 <div className="text-center py-14 bg-slate-950/40 rounded-3xl border border-white/10">
-                  <BookOpen size={46} className="mx-auto text-purple-300" />
+                  <BookOpen
+                    size={46}
+                    className="mx-auto text-purple-300"
+                  />
 
                   <h3 className="text-2xl font-black mt-4">
                     No skills to track yet
                   </h3>
 
                   <p className="text-gray-400 mt-2">
-                    Save careers that include skills to start tracking progress.
+                    Save careers that include skills to start
+                    tracking your progress.
                   </p>
+
+                  <button
+                    onClick={() =>
+                      navigate("/career-explorer")
+                    }
+                    className="mt-6 px-6 py-3 bg-purple-600 rounded-xl font-bold"
+                  >
+                    Explore Careers
+                  </button>
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 gap-4">
                   {allSkills.map((skill) => {
-                    const completed = skillProgress[skill];
+                    const completed =
+                      skillProgress[skill];
 
                     return (
                       <button
                         key={skill}
-                        onClick={() => toggleSkillProgress(skill)}
+                        onClick={() =>
+                          toggleSkillProgress(skill)
+                        }
                         className={`text-left border rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 ${
                           completed
                             ? "bg-green-500/10 border-green-500/40"
@@ -576,7 +785,9 @@ export default function DashboardPage() {
                             </p>
 
                             <p className="text-sm text-gray-400 mt-1">
-                              {completed ? "Completed" : "Mark as completed"}
+                              {completed
+                                ? "Completed"
+                                : "Mark as completed"}
                             </p>
                           </div>
 
@@ -592,6 +803,8 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+
+            {/* LAUNCH PROGRESS */}
 
             <div className="bg-white/[0.04] border border-white/10 backdrop-blur-2xl rounded-3xl p-6 lg:p-8">
               <MiniIllustration
@@ -612,8 +825,10 @@ export default function DashboardPage() {
 
                 <div className="w-full h-4 bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-cyan-500"
-                    style={{ width: `${overallProgress}%` }}
+                    className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 transition-all duration-700"
+                    style={{
+                      width: `${overallProgress}%`,
+                    }}
                   />
                 </div>
               </div>
@@ -624,20 +839,28 @@ export default function DashboardPage() {
                     key={step.title}
                     className="flex items-center justify-between bg-slate-950/50 border border-white/10 rounded-2xl p-4"
                   >
-                    <span>
+                    <span className="text-sm">
                       {step.title}
                     </span>
 
                     {step.done ? (
-                      <CheckCircle className="text-green-400" size={20} />
+                      <CheckCircle
+                        className="text-green-400"
+                        size={20}
+                      />
                     ) : (
-                      <Clock className="text-yellow-400" size={20} />
+                      <Clock
+                        className="text-yellow-400"
+                        size={20}
+                      />
                     )}
                   </div>
                 ))}
               </div>
             </div>
           </section>
+
+          {/* AI TOOLS */}
 
           <section className="mt-8">
             <div className="flex items-center justify-between mb-6">
@@ -647,7 +870,8 @@ export default function DashboardPage() {
                 </h2>
 
                 <p className="text-gray-400 mt-2">
-                  Complete career intelligence tools in one premium dashboard.
+                  Complete career intelligence tools in one
+                  premium dashboard.
                 </p>
               </div>
             </div>
@@ -658,7 +882,9 @@ export default function DashboardPage() {
                 title="Resume Analyzer"
                 description="Analyze resume quality, missing points and improvement areas."
                 locked={!isProUser}
-                onClick={() => navigate("/resume-analyzer")}
+                onClick={() =>
+                  navigate("/resume-analyzer")
+                }
               />
 
               <FeatureVisualCard
@@ -674,7 +900,9 @@ export default function DashboardPage() {
                 title="LinkedIn Analyzer"
                 description="Improve headline, about section and recruiter visibility."
                 locked={!isProUser}
-                onClick={() => navigate("/linkedin-analyzer")}
+                onClick={() =>
+                  navigate("/linkedin-analyzer")
+                }
               />
 
               <FeatureVisualCard
@@ -682,7 +910,9 @@ export default function DashboardPage() {
                 title="Skill Gap Analysis"
                 description="Find missing skills and get a focused learning plan."
                 locked={!isProUser}
-                onClick={() => navigate("/skill-gap-analysis")}
+                onClick={() =>
+                  navigate("/skill-gap-analysis")
+                }
               />
 
               <FeatureVisualCard
@@ -690,7 +920,9 @@ export default function DashboardPage() {
                 title="Roadmap Generator"
                 description="Duolingo-style daily roadmap with XP, badges and progress."
                 locked={!isProUser}
-                onClick={() => navigate("/roadmap-generator")}
+                onClick={() =>
+                  navigate("/roadmap-generator")
+                }
               />
 
               <FeatureVisualCard
@@ -706,7 +938,9 @@ export default function DashboardPage() {
                 title="Interview Readiness"
                 description="Practice interviews, answers and confidence building."
                 locked={!isProUser}
-                onClick={() => alert("Interview Readiness will be added next.")}
+                onClick={() =>
+                  navigate("/interview-readiness")
+                }
               />
 
               <FeatureVisualCard
@@ -714,25 +948,38 @@ export default function DashboardPage() {
                 title="Career Explorer"
                 description="Explore career paths, salary, skills and roadmaps."
                 locked={false}
-                onClick={() => navigate("/career-explorer")}
+                onClick={() =>
+                  navigate("/career-explorer")
+                }
               />
             </div>
           </section>
-                    <section className="grid xl:grid-cols-2 gap-8 mt-8">
+
+          {/* REFERRALS + OPPORTUNITIES */}
+
+          <section className="grid xl:grid-cols-2 gap-8 mt-8">
+            {/* REFERRALS */}
+
             <GlassCard title="Referral Information">
               {!isProUser ? (
                 <ReferralLock
                   title="PRO Required"
-                  text="You should take PRO subscription to access referral program."
+                  text="Take a PRO subscription to access the referral program."
                   button="Take PRO Subscription"
-                  onClick={() => navigate("/launch-batch")}
+                  onClick={() =>
+                    navigate("/launch-batch")
+                  }
                 />
               ) : !isAchieversEligible ? (
                 <ReferralLock
                   title="Achievers Eligibility Required"
                   text="Complete Launch Batch requirements. Admin will verify and unlock referrals."
                   button="Open Launch Batch Dashboard"
-                  onClick={() => navigate("/launch-batch-dashboard")}
+                  onClick={() =>
+                    navigate(
+                      "/launch-batch-dashboard"
+                    )
+                  }
                 />
               ) : (
                 <div className="space-y-4">
@@ -747,14 +994,18 @@ export default function DashboardPage() {
                   />
 
                   <button
-                    onClick={() => navigate("/referrals")}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 rounded-2xl font-bold"
+                    onClick={() =>
+                      navigate("/referrals")
+                    }
+                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 rounded-2xl font-bold hover:scale-[1.01] transition"
                   >
                     Open Referral Dashboard
                   </button>
                 </div>
               )}
             </GlassCard>
+
+            {/* OPPORTUNITIES */}
 
             <GlassCard title="Opportunities">
               {isAchieversEligible ? (
@@ -766,15 +1017,30 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="bg-slate-950/40 border border-white/10 rounded-3xl p-8">
-                  <Crown size={42} className="text-yellow-300" />
+                  <Crown
+                    size={42}
+                    className="text-yellow-300"
+                  />
 
                   <h3 className="text-2xl font-black mt-4">
                     Achievers Club Locked
                   </h3>
 
                   <p className="text-gray-400 mt-2">
-                    Complete Launch Batch requirements to become eligible.
+                    Complete Launch Batch requirements to
+                    become eligible.
                   </p>
+
+                  <button
+                    onClick={() =>
+                      navigate(
+                        "/launch-batch-dashboard"
+                      )
+                    }
+                    className="mt-5 px-5 py-3 rounded-xl bg-purple-600 font-bold"
+                  >
+                    View Requirements
+                  </button>
                 </div>
               )}
             </GlassCard>
@@ -787,10 +1053,15 @@ export default function DashboardPage() {
   );
 }
 
+// ======================================================
+// AI HERO ILLUSTRATION
+// ======================================================
+
 function AIHeroIllustration() {
   return (
     <div className="relative bg-slate-950/60 border border-white/10 rounded-[2rem] p-8 overflow-hidden min-h-[390px]">
       <div className="absolute -top-24 -right-24 w-80 h-80 bg-purple-500/30 blur-3xl rounded-full" />
+
       <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-cyan-500/20 blur-3xl rounded-full" />
 
       <div className="relative z-10 h-full flex flex-col items-center justify-center">
@@ -798,7 +1069,10 @@ function AIHeroIllustration() {
           <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-600/40 to-cyan-500/40 blur-2xl" />
 
           <div className="absolute inset-8 rounded-full border border-white/20 bg-white/5 backdrop-blur-xl flex items-center justify-center">
-            <Brain size={78} className="text-purple-200" />
+            <Brain
+              size={78}
+              className="text-purple-200"
+            />
           </div>
 
           <div className="absolute top-6 left-2 bg-white/10 border border-white/10 rounded-2xl p-3">
@@ -819,14 +1093,27 @@ function AIHeroIllustration() {
         </h3>
 
         <p className="text-gray-400 text-center mt-2">
-          Skills, progress, roadmap and career intelligence in one place.
+          Skills, progress, roadmap and career intelligence
+          in one place.
         </p>
       </div>
     </div>
   );
 }
 
-function VisualStatCard({ title, value, icon }: any) {
+// ======================================================
+// STAT CARD
+// ======================================================
+
+function VisualStatCard({
+  title,
+  value,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+}) {
   return (
     <div className="relative overflow-hidden bg-white/[0.04] border border-white/10 backdrop-blur-2xl rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-purple-500/50">
       <div className="absolute -right-10 -top-10 w-32 h-32 bg-purple-500/20 blur-2xl rounded-full" />
@@ -836,9 +1123,7 @@ function VisualStatCard({ title, value, icon }: any) {
           {icon}
         </div>
 
-        <p className="text-gray-400">
-          {title}
-        </p>
+        <p className="text-gray-400">{title}</p>
 
         <h3 className="text-4xl font-black mt-3 text-purple-300">
           {value}
@@ -848,7 +1133,17 @@ function VisualStatCard({ title, value, icon }: any) {
   );
 }
 
-function MiniIllustration({ title, icon }: any) {
+// ======================================================
+// MINI ILLUSTRATION
+// ======================================================
+
+function MiniIllustration({
+  title,
+  icon,
+}: {
+  title: string;
+  icon: React.ReactNode;
+}) {
   return (
     <div className="bg-slate-950/50 border border-white/10 rounded-3xl p-6 text-center">
       <div className="mx-auto w-20 h-20 rounded-3xl bg-gradient-to-r from-purple-600/30 to-cyan-500/30 border border-white/10 flex items-center justify-center text-purple-200">
@@ -862,13 +1157,23 @@ function MiniIllustration({ title, icon }: any) {
   );
 }
 
+// ======================================================
+// FEATURE CARD
+// ======================================================
+
 function FeatureVisualCard({
   icon,
   title,
   description,
   locked,
   onClick,
-}: any) {
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  locked: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       onClick={onClick}
@@ -901,7 +1206,17 @@ function FeatureVisualCard({
   );
 }
 
-function GlassCard({ title, children }: any) {
+// ======================================================
+// GLASS CARD
+// ======================================================
+
+function GlassCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="bg-white/[0.04] border border-white/10 backdrop-blur-2xl rounded-3xl p-6 lg:p-8">
       <h2 className="text-3xl font-black mb-6">
@@ -913,12 +1228,20 @@ function GlassCard({ title, children }: any) {
   );
 }
 
-function InfoBox({ label, value }: any) {
+// ======================================================
+// INFO BOX
+// ======================================================
+
+function InfoBox({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div className="bg-slate-950/50 border border-white/10 rounded-2xl p-4">
-      <p className="text-gray-400 text-sm">
-        {label}
-      </p>
+      <p className="text-gray-400 text-sm">{label}</p>
 
       <p className="font-bold mt-1 break-all">
         {value}
@@ -927,7 +1250,21 @@ function InfoBox({ label, value }: any) {
   );
 }
 
-function ReferralLock({ title, text, button, onClick }: any) {
+// ======================================================
+// REFERRAL LOCK
+// ======================================================
+
+function ReferralLock({
+  title,
+  text,
+  button,
+  onClick,
+}: {
+  title: string;
+  text: string;
+  button: string;
+  onClick: () => void;
+}) {
   return (
     <div className="bg-slate-950/50 border border-white/10 rounded-3xl p-6">
       <h3 className="text-2xl font-black text-yellow-300">
@@ -940,7 +1277,7 @@ function ReferralLock({ title, text, button, onClick }: any) {
 
       <button
         onClick={onClick}
-        className="mt-5 w-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 rounded-2xl font-bold"
+        className="mt-5 w-full bg-gradient-to-r from-purple-600 to-blue-600 py-4 rounded-2xl font-bold hover:scale-[1.01] transition"
       >
         {button}
       </button>
@@ -948,10 +1285,21 @@ function ReferralLock({ title, text, button, onClick }: any) {
   );
 }
 
-function Opportunity({ text }: any) {
+// ======================================================
+// OPPORTUNITY
+// ======================================================
+
+function Opportunity({ text }: { text: string }) {
   return (
-    <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-5">
-      {text}
+    <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-5 hover:bg-green-500/15 transition">
+      <div className="flex items-center gap-3">
+        <CheckCircle
+          size={20}
+          className="text-green-400"
+        />
+
+        <span>{text}</span>
+      </div>
     </div>
   );
 }

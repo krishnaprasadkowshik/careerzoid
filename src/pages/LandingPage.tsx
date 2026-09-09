@@ -18,31 +18,28 @@ export default function LandingPageV2() {
     <div className="cz-landing min-h-screen text-white">
 
       {/* NAVBAR */}
-
       <nav className="cz-nav sticky top-0 z-50 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
 
           <div className="flex items-center gap-3">
+            <img
+              src={logo}
+              alt="CareerZoid"
+              className="h-14 w-auto"
+            />
 
-  <img
-    src={logo}
-    alt="CareerZoid"
-    className="h-14 w-auto"
-  />
+            <div>
+              <h1 className="cz-logo text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                CareerZoid
+              </h1>
 
-  <div>
-    <h1 className="cz-logo text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-      CareerZoid
-    </h1>
+              <p className="text-xs text-gray-400">
+                Career Intelligence Platform
+              </p>
+            </div>
+          </div>
 
-    <p className="text-xs text-gray-400">
-      Career Intelligence Platform
-    </p>
-  </div>
-
-</div>
           <div className="flex gap-3">
-
             <Link
               to="/login"
               className="cz-button-secondary px-5 py-2 rounded-xl border border-white/20 hover:bg-white/10"
@@ -56,14 +53,12 @@ export default function LandingPageV2() {
             >
               Sign Up
             </Link>
-
           </div>
 
         </div>
       </nav>
 
       {/* HERO */}
-
       <section className="max-w-7xl mx-auto px-6 py-24 lg:py-28">
 
         <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -72,11 +67,13 @@ export default function LandingPageV2() {
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
           >
-<img
-  src={logo}
-  alt="CareerZoid"
-  className="h-24 mb-6"
-/>
+
+            <img
+              src={logo}
+              alt="CareerZoid"
+              className="h-24 mb-6"
+            />
+
             <span className="cz-pill bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full text-sm">
               AI Powered Career Intelligence
             </span>
@@ -131,36 +128,66 @@ export default function LandingPageV2() {
 
       </section>
 
+      {/* LAUNCH + ACHIEVERS */}
       <section className="max-w-7xl mx-auto px-6 py-12">
+
         <div className="grid lg:grid-cols-2 gap-8">
+
           <div className="cz-illustration-panel">
-            <img src={launchBatchImage} alt="Launch Batch dashboard illustration" />
+
+            <img
+              src={launchBatchImage}
+              alt="Launch Batch dashboard illustration"
+            />
+
             <div>
-              <span className="cz-pill">Launch Batch</span>
-              <h2>30-day career readiness with visible progress.</h2>
+              <span className="cz-pill">
+                Launch Batch
+              </span>
+
+              <h2>
+                30-day career readiness with visible progress.
+              </h2>
+
               <p>
-                Complete guided steps for discovery, skill gaps, resume, LinkedIn,
-                roadmap, and interview readiness.
+                Complete guided steps for career discovery,
+                skill gaps, resume improvement, LinkedIn,
+                roadmap building, and interview readiness.
               </p>
             </div>
+
           </div>
 
           <div className="cz-illustration-panel">
-            <img src={achieversImage} alt="Achievers Club referral illustration" />
+
+            <img
+              src={achieversImage}
+              alt="Achievers Club referral illustration"
+            />
+
             <div>
-              <span className="cz-pill">Achievers Club</span>
-              <h2>Earn referrals, community access, and opportunities.</h2>
+              <span className="cz-pill">
+                Achievers Club
+              </span>
+
+              <h2>
+                Build connections. Earn referrals. Unlock opportunities.
+              </h2>
+
               <p>
-                Eligible students unlock networking, referral tracking, leaderboard
-                visibility, and opportunity-focused benefits.
+                Eligible students can access networking,
+                referral tracking, leaderboard visibility,
+                community benefits, and opportunity-focused programs.
               </p>
             </div>
+
           </div>
+
         </div>
+
       </section>
 
       {/* STATS */}
-
       <section className="max-w-7xl mx-auto px-6 py-10">
 
         <div className="grid md:grid-cols-4 gap-6">
@@ -169,7 +196,6 @@ export default function LandingPageV2() {
             <h3 className="text-4xl font-bold text-purple-400">
               1000+
             </h3>
-
             <p className="text-gray-400">
               Skills
             </p>
@@ -179,7 +205,6 @@ export default function LandingPageV2() {
             <h3 className="text-4xl font-bold text-blue-400">
               500+
             </h3>
-
             <p className="text-gray-400">
               Career Paths
             </p>
@@ -189,7 +214,6 @@ export default function LandingPageV2() {
             <h3 className="text-4xl font-bold text-green-400">
               AI
             </h3>
-
             <p className="text-gray-400">
               Powered
             </p>
@@ -199,7 +223,6 @@ export default function LandingPageV2() {
             <h3 className="text-4xl font-bold text-orange-400">
               24/7
             </h3>
-
             <p className="text-gray-400">
               Learning Access
             </p>
@@ -208,8 +231,8 @@ export default function LandingPageV2() {
         </div>
 
       </section>
-            {/* FEATURES */}
 
+      {/* FEATURES */}
       <section className="max-w-7xl mx-auto px-6 py-20">
 
         <h2 className="text-5xl font-bold text-center mb-14">
@@ -257,7 +280,7 @@ export default function LandingPageV2() {
           <FeatureCard
             image={community}
             title="Premium Community"
-            description="Exclusive networking community available only for Pro and Founder members."
+            description="Exclusive networking community available for eligible CareerZoid members."
           />
 
           <div className="bg-gradient-to-br from-purple-600/20 to-blue-600/20 rounded-3xl p-8 border border-white/10">
@@ -278,7 +301,6 @@ export default function LandingPageV2() {
       </section>
 
       {/* SKILLS */}
-
       <section className="max-w-7xl mx-auto px-6 py-20">
 
         <h2 className="text-5xl font-bold text-center mb-12">
@@ -314,7 +336,6 @@ export default function LandingPageV2() {
       </section>
 
       {/* HOW IT WORKS */}
-
       <section className="max-w-7xl mx-auto px-6 py-20">
 
         <h2 className="text-5xl font-bold text-center mb-16">
@@ -366,8 +387,8 @@ export default function LandingPageV2() {
         </div>
 
       </section>
-            {/* TESTIMONIALS */}
 
+      {/* TESTIMONIALS */}
       <section className="max-w-7xl mx-auto px-6 py-20">
 
         <h2 className="text-5xl font-bold text-center mb-16">
@@ -414,18 +435,27 @@ export default function LandingPageV2() {
       </section>
 
       {/* PRICING */}
-
       <section className="max-w-7xl mx-auto px-6 py-20">
 
-        <h2 className="text-5xl font-bold text-center mb-16">
-          Pricing
+        <h2 className="text-5xl font-bold text-center mb-6">
+          Choose Your CareerZoid Plan
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <p className="text-center text-gray-400 mb-16">
+          Start free and upgrade when you are ready to unlock more career intelligence.
+        </p>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+          {/* FREE */}
 
           <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
 
-            <h3 className="text-2xl font-bold">
+            <span className="text-sm text-gray-400">
+              GET STARTED
+            </span>
+
+            <h3 className="text-2xl font-bold mt-2">
               Free
             </h3>
 
@@ -433,55 +463,150 @@ export default function LandingPageV2() {
               ₹0
             </p>
 
+            <p className="text-gray-400 mt-2">
+              Forever free
+            </p>
+
             <ul className="mt-8 space-y-3 text-gray-300">
               <li>✓ Career Explorer</li>
               <li>✓ Limited AI Usage</li>
               <li>✓ Limited Roadmaps</li>
               <li>✓ Limited Interview Prep</li>
-              <li>✗ Community Access</li>
+              <li>✗ Premium Community</li>
               <li>✗ Resume Intelligence</li>
             </ul>
 
+            <Link
+              to="/signup"
+              className="block text-center mt-8 px-6 py-3 rounded-2xl border border-white/20 hover:bg-white/10 transition"
+            >
+              Start Free
+            </Link>
+
           </div>
 
-          <div className="bg-purple-600 rounded-3xl p-8 border border-purple-400">
+          {/* PRO */}
 
-            <h3 className="text-2xl font-bold">
+          <div className="bg-purple-600 rounded-3xl p-8 border border-purple-400 relative overflow-hidden">
+
+            <div className="absolute top-5 right-5 bg-white text-purple-700 text-xs font-black px-3 py-1 rounded-full">
+              POPULAR
+            </div>
+
+            <span className="text-sm text-purple-200">
+              FULL ACCESS
+            </span>
+
+            <h3 className="text-2xl font-bold mt-2">
               Pro
             </h3>
 
             <p className="text-5xl font-bold mt-6">
-              ₹29/month
+              ₹49
+            </p>
+
+            <p className="text-purple-200 mt-2">
+              per month
             </p>
 
             <ul className="mt-8 space-y-3">
               <li>✓ Unlimited AI Tools</li>
               <li>✓ Resume Intelligence</li>
               <li>✓ Skill Gap Analyzer</li>
-              <li>✓ Community Access</li>
+              <li>✓ AI Career Assessment</li>
+              <li>✓ LinkedIn Analyzer</li>
               <li>✓ Advanced Reports</li>
               <li>✓ Interview Preparation</li>
+              <li>✓ Premium Community</li>
             </ul>
+
+            <Link
+              to="/signup"
+              className="block text-center mt-8 px-6 py-3 rounded-2xl bg-white text-purple-700 font-bold hover:bg-gray-100 transition"
+            >
+              Upgrade to Pro
+            </Link>
 
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
+          {/* LAUNCH BATCH */}
 
-            <h3 className="text-2xl font-bold">
-              Founder
+          <div className="bg-gradient-to-br from-blue-600/20 to-cyan-500/10 border border-blue-400/30 rounded-3xl p-8">
+
+            <span className="text-sm text-blue-300 font-bold">
+              SPECIAL PROGRAM
+            </span>
+
+            <h3 className="text-2xl font-bold mt-2">
+              Launch Batch
             </h3>
 
-            <p className="text-5xl font-bold mt-6">
-              ₹299
+            <div className="text-4xl mt-6">
+              🚀
+            </div>
+
+            <p className="text-gray-300 mt-4">
+              A focused 30-day career readiness program designed
+              to help you move from preparation to action.
             </p>
 
             <ul className="mt-8 space-y-3 text-gray-300">
-              <li>✓ Everything in Pro</li>
-              <li>✓ Lifetime Access</li>
-              <li>✓ Founder Badge</li>
-              <li>✓ Priority Support</li>
-              <li>✓ Early Access Features</li>
+              <li>✓ 30-Day Career Readiness</li>
+              <li>✓ Career Discovery</li>
+              <li>✓ Skill Gap Planning</li>
+              <li>✓ Resume Improvement</li>
+              <li>✓ LinkedIn Improvement</li>
+              <li>✓ Career Roadmap</li>
+              <li>✓ Interview Readiness</li>
+              <li>✓ Progress Tracking</li>
             </ul>
+
+            <Link
+              to="/signup"
+              className="block text-center mt-8 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 font-bold transition"
+            >
+              Join Launch Batch
+            </Link>
+
+          </div>
+
+          {/* ACHIEVERS CLUB */}
+
+          <div className="bg-gradient-to-br from-orange-500/20 to-yellow-500/10 border border-orange-400/30 rounded-3xl p-8">
+
+            <span className="text-sm text-orange-300 font-bold">
+              ELITE COMMUNITY
+            </span>
+
+            <h3 className="text-2xl font-bold mt-2">
+              Achievers Club
+            </h3>
+
+            <div className="text-4xl mt-6">
+              🏆
+            </div>
+
+            <p className="text-gray-300 mt-4">
+              A community-focused program for students who want
+              networking, referrals and career opportunities.
+            </p>
+
+            <ul className="mt-8 space-y-3 text-gray-300">
+              <li>✓ Community Access</li>
+              <li>✓ Networking</li>
+              <li>✓ Referral Tracking</li>
+              <li>✓ Leaderboard Visibility</li>
+              <li>✓ Opportunity-Focused Benefits</li>
+              <li>✓ Career Connections</li>
+              <li>✓ Member Recognition</li>
+            </ul>
+
+            <Link
+              to="/signup"
+              className="block text-center mt-8 px-6 py-3 rounded-2xl bg-orange-600 hover:bg-orange-500 font-bold transition"
+            >
+              Explore Achievers Club
+            </Link>
 
           </div>
 
@@ -490,7 +615,6 @@ export default function LandingPageV2() {
       </section>
 
       {/* CONTACT */}
-
       <section className="max-w-7xl mx-auto px-6 py-20">
 
         <div className="bg-white/5 border border-white/10 rounded-3xl p-10">
@@ -521,22 +645,21 @@ export default function LandingPageV2() {
       </section>
 
       {/* FOOTER */}
-
       <footer className="border-t border-white/10 py-10 text-center text-gray-400">
 
         <div className="flex flex-col items-center">
 
-  <img
-    src={logo}
-    alt="CareerZoid"
-    className="h-16 mb-3"
-  />
+          <img
+            src={logo}
+            alt="CareerZoid"
+            className="h-16 mb-3"
+          />
 
-  <h3 className="text-2xl font-bold text-white">
-    CareerZoid
-  </h3>
+          <h3 className="text-2xl font-bold text-white">
+            CareerZoid
+          </h3>
 
-</div>
+        </div>
 
         <p className="mt-3">
           Career Intelligence Platform
